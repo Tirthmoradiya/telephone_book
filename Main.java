@@ -79,6 +79,7 @@ class AVLTree implements Serializable {
             return 0;
         return gh(node.left) - gh(node.right);
     }
+
     // insert operation
     private AVLNode insert(AVLNode node, c c) {
         if (node == null) {
@@ -126,6 +127,7 @@ class AVLTree implements Serializable {
 
         return node;
     }
+
     // delete operation
     private AVLNode dn(AVLNode node, String n, String pn, String e) {
         if (node == null) {
@@ -195,9 +197,10 @@ class AVLTree implements Serializable {
 
         return true;
     }
+
     // update contact
     public boolean uc(String n, String pn, String e, String newn, String newpn,
-                      String newe) {
+            String newe) {
         c updatedc = new c(newn, newpn, newe);
 
         AVLNode node = sndbid(r, n, pn, e);
@@ -210,6 +213,7 @@ class AVLTree implements Serializable {
         }
 
     }
+
     // search by node
     private AVLNode sndbid(AVLNode node, String n, String pn, String e) {
         if (node == null) {
@@ -239,12 +243,14 @@ class AVLTree implements Serializable {
             }
         }
     }
+
     // returns contacts in string form
     public String gc() {
         StringBuilder ctsb = new StringBuilder();
         iot(r, ctsb);
         return ctsb.toString();
     }
+
     // search by name
     public String sctsbn(String searchTerm) {
         StringBuilder searchResult = new StringBuilder();
@@ -284,12 +290,14 @@ class AVLTree implements Serializable {
         }
         sbpn(node.right, pn, searchResult);
     }
+
     // gets contact from csv file contact list
     public List<c> gcList() {
         List<c> csList = new ArrayList<>();
         iot(r, csList);
         return csList;
     }
+
     // inorder traversal for storing contacts in csv file
     private void iot(AVLNode node, List<c> cs) {
         if (node == null) {
@@ -299,7 +307,8 @@ class AVLTree implements Serializable {
         cs.add(node.c);
         iot(node.right, cs);
     }
-    //stores contact in csv file
+
+    // stores contact in csv file
     public static void sc(List<c> cs, String filePath) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (c c : cs) {
@@ -312,6 +321,7 @@ class AVLTree implements Serializable {
         }
     }
 }
+
 // class to read csv file contacts and return as list
 class CSVReader {
     public static List<c> rcsv(String filePath) {
@@ -348,8 +358,8 @@ class CSVReader {
 
 // our main frame work
 public class Main {
-    //setting tree loading contacts from csv file to tree,filepath,validation
-// and other things to make gui frame work
+    // setting tree loading contacts from csv file to tree,filepath,validation
+    // and other things to make gui frame work
     private static final AVLTree cTree = new AVLTree();
     private static final String filePath = "C:\\Users\\PREMIUM\\IdeaProjects\\untitled3\\src\\New Microsoft Excel Worksheet.csv";
     private static final String n_REGEX = "^[A-Za-z]+$";
@@ -388,7 +398,7 @@ public class Main {
 
             executeButton.addActionListener(e -> {
                 String selectedOperation = (String) operationsComboBox.getSelectedItem();
-// all our oprations
+                // all our oprations
                 if ("Add contact".equals(selectedOperation)) {
                     String n = JOptionPane.showInputDialog("Enter name:");
                     while (validateInput(n, n_REGEX)) {
@@ -477,7 +487,7 @@ public class Main {
                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                     if (choice == JOptionPane.YES_OPTION) {
-// saves new contact back to csv file
+                        // saves new contact back to csv file
                         AVLTree.sc(cTree.gcList(), filePath);
                         JOptionPane.showMessageDialog(frame, "Thank you for using the system!");
                         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
