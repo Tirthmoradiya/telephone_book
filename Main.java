@@ -9,7 +9,6 @@ public class Main {
     // setting tree loading contacts from csv file to tree,filepath,validation
     // and other things to make gui frame work
     private static final AVLTree cTree = new AVLTree();
-    // private static final String filePath = "C:\\Users\\PREMIUM\\IdeaProjects\\untitled3\\src\\New Microsoft Excel Worksheet.csv";
     private static final String n_REGEX = "^[A-Za-z]+$";
     private static final String PHONE_REGEX = "^\\d{10}$";
     private static final String e_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
@@ -186,45 +185,6 @@ public class Main {
 
             // Add key listener to liveSearchField to filter on Enter
             liveSearchField.addActionListener(e -> refreshTable.run());
-
-            // Live search/filter logic (optional: keep for instant feedback)
-            // liveSearchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            //     public void insertUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
-            //     public void removeUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
-            //     public void changedUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
-            // });
-
-            // Enable multi-row selection for batch delete
-            // contactTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION); // This line was moved
-
-            // Add batch delete button
-            // batchDeleteButton.addActionListener(e -> { // This line was moved
-            //     int[] selectedRows = contactTable.getSelectedRows(); // This line was moved
-            //     if (selectedRows.length == 0) { // This line was moved
-            //         setStatus(statusBar, new Timer[]{null}, "No contacts selected for batch delete.", Color.YELLOW); // This line was moved
-            //         return; // This line was moved
-            //     } // This line was moved
-            //     int confirm = JOptionPane.showConfirmDialog(frame, "Delete all selected contacts?", "Confirm Batch Delete", JOptionPane.YES_NO_OPTION); // This line was moved
-            //     if (confirm == JOptionPane.YES_OPTION) { // This line was moved
-            //         java.util.List<Contact> toDelete = new java.util.ArrayList<>(); // This line was moved
-            //         for (int row : selectedRows) { // This line was moved
-            //             String name = (String) tableModel.getValueAt(row, 2); // This line was moved
-            //             String phone = (String) tableModel.getValueAt(row, 3); // This line was moved
-            //             String email = (String) tableModel.getValueAt(row, 4); // This line was moved
-            //             for (Contact contact : cTree.getContactList()) { // This line was moved
-            //                 if (contact.name.equals(name) && contact.phoneNumber.equals(phone) && contact.email.equals(email)) { // This line was moved
-            //                     toDelete.add(contact); // This line was moved
-            //                     break; // This line was moved
-            //                 } // This line was moved
-            //             } // This line was moved
-            //         } // This line was moved
-            //         for (Contact contact : toDelete) { // This line was moved
-            //             cTree.root = cTree.delete(cTree.root, contact.name, contact.phoneNumber, contact.email); // This line was moved
-            //         } // This line was moved
-            //         refreshTable.run(); // This line was moved
-            //         setStatus(statusBar, new Timer[]{null}, "Batch delete completed.", Color.RED); // This line was moved
-            //     } // This line was moved
-            // }); // This line was moved
 
             // Status bar at the bottom
             JLabel statusBar = new JLabel("Ready");
@@ -469,52 +429,6 @@ public class Main {
                     setStatus(statusBar, new Timer[]{null}, "Contact deleted.", Color.RED);
                 }
             });
-
-            // Search Contact Dialog
-            // searchButton.addActionListener(e -> { // This line was moved
-            //     JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5)); // This line was moved
-            //     String[] options = {"Name", "Phone Number"}; // This line was moved
-            //     JComboBox<String> searchType = new JComboBox<>(options); // This line was moved
-            //     JTextField searchField = new JTextField(); // This line was moved
-            //     panel.add(new JLabel("Search by:")); panel.add(searchType); // This line was moved
-            //     panel.add(new JLabel("Search term:")); panel.add(searchField); // This line was moved
-            //     searchField.requestFocusInWindow(); // This line was moved
-            //     JDialog dialog = new JDialog(frame, "Search Contacts", true); // This line was moved
-            //     dialog.setResizable(true); // This line was moved
-            //     dialog.setContentPane(panel); // This line was moved
-            //     dialog.pack(); // This line was moved
-            //     dialog.setLocationRelativeTo(frame); // This line was moved
-            //     dialog.getRootPane().setDefaultButton(new JButton()); // This line was moved
-            //     panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "submit"); // This line was moved
-            //     panel.getActionMap().put("submit", new AbstractAction() { // This line was moved
-            //         public void actionPerformed(ActionEvent e) { // This line was moved
-            //             String term = searchField.getText().trim(); // This line was moved
-            //             tableModel.setRowCount(0); // This line was moved
-            //             if (searchType.getSelectedIndex() == 0) { // Name // This line was moved
-            //                 int rowNum = 1; // This line was moved
-            //                 for (Contact contact : cTree.getContactList()) { // This line was moved
-            //                     if (contact.name.toLowerCase().contains(term.toLowerCase())) { // This line was moved
-            //                         tableModel.addRow(new Object[]{rowNum++, contact.name, contact.phoneNumber, contact.email}); // This line was moved
-            //                     } // This line was moved
-            //                 } // This line was moved
-            //                 setStatus(statusBar, new Timer[]{null}, "Search by name complete.", new Color(255, 140, 0)); // orange // This line was moved
-            //             } else { // Phone Number // This line was moved
-            //                 int rowNum = 1; // This line was moved
-            //                 for (Contact contact : cTree.getContactList()) { // This line was moved
-            //                     if (contact.phoneNumber.contains(term)) { // This line was moved
-            //                         tableModel.addRow(new Object[]{rowNum++, contact.name, contact.phoneNumber, contact.email}); // This line was moved
-            //                     } // This line was moved
-            //                 } // This line was moved
-            //                 setStatus(statusBar, new Timer[]{null}, "Search by phone number complete.", new Color(255, 140, 0)); // orange // This line was moved
-            //             } // This line was moved
-            //             dialog.dispose(); // This line was moved
-            //         } // This line was moved
-            //     }); // This line was moved
-            //     dialog.getRootPane().setDefaultButton(new JButton() {{ // This line was moved
-            //         addActionListener(panel.getActionMap().get("submit")); // This line was moved
-            //     }}); // This line was moved
-            //     dialog.setVisible(true); // This line was moved
-            // }); // This line was moved
 
             // Clear Search Button
             clearSearchButton.addActionListener(e -> refreshTable.run());
