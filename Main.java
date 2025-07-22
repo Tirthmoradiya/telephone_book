@@ -1,367 +1,15 @@
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
-// simple contact block
-class c implements Serializable {
-    String n;
-    String pn;
-    String e;
-
-    c(String n, String pn, String e) {
-        this.n = n;
-        this.pn = pn;
-        this.e = e;
-    }
-}
-
-// avl node from contact block
-class AVLNode {
-    c c;
-    AVLNode left;
-    AVLNode right;
-    int height;
-
-    AVLNode(c c) {
-        this.c = c;
-        this.left = null;
-        this.right = null;
-        this.height = 1;
-    }
-}
-
-// main avl tree implementations
-class AVLTree implements Serializable {
-    public AVLNode r;
-
-    // right rotation
-    private AVLNode rr(AVLNode y) {
-        AVLNode x = y.left;
-        AVLNode T2 = x.right;
-
-        x.right = y;
-        y.left = T2;
-
-        y.height = Math.max(gh(y.left), gh(y.right)) + 1;
-        x.height = Math.max(gh(x.left), gh(x.right)) + 1;
-
-        return x;
-    }
-
-    // gets height
-    private int gh(AVLNode node) {
-        if (node == null)
-            return 0;
-        return node.height;
-    }
-
-    // left rotation
-    private AVLNode lr(AVLNode x) {
-        AVLNode y = x.right;
-        AVLNode T2 = y.left;
-
-        y.left = x;
-        x.right = T2;
-
-        x.height = Math.max(gh(x.left), gh(x.right)) + 1;
-        y.height = Math.max(gh(y.left), gh(y.right)) + 1;
-
-        return y;
-    }
-
-    // gets hight difference
-    private int gb(AVLNode node) {
-        if (node == null)
-            return 0;
-        return gh(node.left) - gh(node.right);
-    }
-
-    // insert operation
-    private AVLNode insert(AVLNode node, c c) {
-        if (node == null) {
-            return new AVLNode(c);
-        }
-
-        int nc = c.n.compareTo(node.c.n);
-        int pc = c.pn.compareTo(node.c.pn);
-        int ec = c.e.compareTo(node.c.e);
-
-        if (nc < 0) {
-            node.left = insert(node.left, c);
-        } else if (nc > 0) {
-            node.right = insert(node.right, c);
-        } else {
-            if (pc < 0) {
-                node.left = insert(node.left, c);
-            } else if (pc > 0) {
-                node.right = insert(node.right, c);
-            } else {
-                if (ec < 0) {
-                    node.left = insert(node.left, c);
-                } else {
-                    node.right = insert(node.right, c);
-                }
-            }
-        }
-
-        node.height = 1 + Math.max(gh(node.left), gh(node.right));
-
-        int balance = gb(node);
-
-        if (balance > 1) {
-            if (nc > 0) {
-                node.left = lr(node.left);
-            }
-            return rr(node);
-        }
-        if (balance < -1) {
-            if (nc < 0) {
-                node.right = rr(node.right);
-            }
-            return lr(node);
-        }
-
-        return node;
-    }
-
-    // delete operation
-    private AVLNode dn(AVLNode node, String n, String pn, String e) {
-        if (node == null) {
-            return null;
-        }
-
-        AVLNode node1 = sndbid(r, n, pn, e);
-        if (node1 != null) {
-            if (node.left == null) {
-                return node.right;
-            } else if (node.right == null) {
-                return node.left;
-            }
-            node.c = fm(node.right);
-            node.right = dn(node.right, node.c.n, node.c.pn, node.c.e);
-        }
-        node.height = 1 + Math.max(gh(node.left), gh(node.right));
-        int balance = gb(node);
-
-        if (balance > 1 && gb(node.left) >= 0) {
-            return rr(node);
-        }
-        if (balance > 1 && gb(node.left) < 0) {
-            node.left = lr(node.left);
-            return rr(node);
-        }
-        if (balance < -1 && gb(node.right) <= 0) {
-            return lr(node);
-        }
-        if (balance < -1 && gb(node.right) > 0) {
-            node.right = rr(node.right);
-            return lr(node);
-        }
-
-        return node;
-    }
-
-    // finding minimum node
-    private c fm(AVLNode node) {
-        while (node.left != null) {
-            node = node.left;
-        }
-        return node.c;
-    }
-
-    // in order traversal of tree
-    private void iot(AVLNode node, StringBuilder ctsb) {
-        if (node == null) {
-            return;
-        }
-        iot(node.left, ctsb);
-        ctsb.append("name: ").append(node.c.n)
-                .append(", Phone: ").append(node.c.pn)
-                .append(", email: ").append(node.c.e).append("\n");
-        iot(node.right, ctsb);
-    }
-
-    // add contact
-    public boolean ac(String n, String pn, String e) {
-
-        c newc = new c(n, pn, e);
-        AVLNode node = sndbid(r, n, pn, e);
-        if (node == null)
-            r = insert(r, newc);
-        else
-            return false;
-
-        return true;
-    }
-
-    // update contact
-    public boolean uc(String n, String pn, String e, String newn, String newpn,
-            String newe) {
-        c updatedc = new c(newn, newpn, newe);
-
-        AVLNode node = sndbid(r, n, pn, e);
-        if (node != null) {
-            r = dn(r, n, pn, e);
-            r = insert(r, updatedc);
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-
-    // search by node
-    private AVLNode sndbid(AVLNode node, String n, String pn, String e) {
-        if (node == null) {
-            return null;
-        }
-
-        int nc = n.compareTo(node.c.n);
-        if (nc < 0) {
-            return sndbid(node.left, n, pn, e);
-        } else if (nc > 0) {
-            return sndbid(node.right, n, pn, e);
-        } else {
-            int pc = pn.compareTo(node.c.pn);
-            if (pc < 0) {
-                return sndbid(node.left, n, pn, e);
-            } else if (pc > 0) {
-                return sndbid(node.right, n, pn, e);
-            } else {
-                int ec = e.compareTo(node.c.e);
-                if (ec < 0) {
-                    return sndbid(node.left, n, pn, e);
-                } else if (ec > 0) {
-                    return sndbid(node.right, n, pn, e);
-                } else {
-                    return node;
-                }
-            }
-        }
-    }
-
-    // returns contacts in string form
-    public String gc() {
-        StringBuilder ctsb = new StringBuilder();
-        iot(r, ctsb);
-        return ctsb.toString();
-    }
-
-    // search by name
-    public String sctsbn(String searchTerm) {
-        StringBuilder searchResult = new StringBuilder();
-        sbn(r, searchTerm, searchResult);
-        return searchResult.toString();
-    }
-
-    private void sbn(AVLNode node, String n, StringBuilder searchResult) {
-        if (node == null) {
-            return;
-        }
-        sbn(node.left, n, searchResult);
-        if (node.c.n.toLowerCase().contains(n.toLowerCase())) {
-            searchResult.append("name: ").append(node.c.n)
-                    .append(", Phone: ").append(node.c.pn)
-                    .append(", email: ").append(node.c.e).append("\n");
-        }
-        sbn(node.right, n, searchResult);
-    }
-
-    // search by phone number
-    public String sctsbpn(String searchTerm) {
-        StringBuilder searchResult = new StringBuilder();
-        sbpn(r, searchTerm, searchResult);
-        return searchResult.toString();
-    }
-
-    private void sbpn(AVLNode node, String pn, StringBuilder searchResult) {
-        if (node == null) {
-            return;
-        }
-        sbpn(node.left, pn, searchResult);
-        if (node.c.pn.contains(pn)) {
-            searchResult.append("name: ").append(node.c.n)
-                    .append(", Phone: ").append(node.c.pn)
-                    .append(", email: ").append(node.c.e).append("\n");
-        }
-        sbpn(node.right, pn, searchResult);
-    }
-
-    // gets contact from csv file contact list
-    public List<c> gcList() {
-        List<c> csList = new ArrayList<>();
-        iot(r, csList);
-        return csList;
-    }
-
-    // inorder traversal for storing contacts in csv file
-    private void iot(AVLNode node, List<c> cs) {
-        if (node == null) {
-            return;
-        }
-        iot(node.left, cs);
-        cs.add(node.c);
-        iot(node.right, cs);
-    }
-
-    // stores contact in csv file
-    public static void sc(List<c> cs, String filePath) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            for (c c : cs) {
-                String line = c.n + "," + c.pn + "," + c.e;
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-
-// class to read csv file contacts and return as list
-class CSVReader {
-    public static List<c> rcsv(String filePath) {
-        List<c> cs = new ArrayList<>();
-
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            br.mark(1);
-            if (br.read() != 0xFEFF) {
-                br.reset();
-            }
-
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-
-                if (data.length >= 3) {
-                    String n = data[0];
-                    String pn = data[1];
-                    String e = data[2];
-
-                    c c = new c(n, pn, e);
-                    cs.add(c);
-                } else {
-                    System.out.println("Invalid CSV format: " + line);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return cs;
-    }
-}
+import javax.swing.table.TableCellRenderer;
 
 // our main frame work
 public class Main {
     // setting tree loading contacts from csv file to tree,filepath,validation
     // and other things to make gui frame work
     private static final AVLTree cTree = new AVLTree();
-    private static final String filePath = "C:\\Users\\PREMIUM\\IdeaProjects\\untitled3\\src\\New Microsoft Excel Worksheet.csv";
+    // private static final String filePath = "C:\\Users\\PREMIUM\\IdeaProjects\\untitled3\\src\\New Microsoft Excel Worksheet.csv";
     private static final String n_REGEX = "^[A-Za-z]+$";
     private static final String PHONE_REGEX = "^\\d{10}$";
     private static final String e_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
@@ -370,116 +18,536 @@ public class Main {
         return !input.matches(regex);
     }
 
+    public static void setStatus(JLabel statusBar, Timer[] statusTimer, String msg, Color color) {
+        statusBar.setText(msg);
+        statusBar.setForeground(color);
+        if (statusTimer[0] != null && statusTimer[0].isRunning()) statusTimer[0].stop();
+        statusTimer[0] = new Timer(3000, evt -> {
+            statusBar.setText("Ready");
+            statusBar.setForeground(Color.BLACK);
+        });
+        statusTimer[0].setRepeats(false);
+        statusTimer[0].start();
+    }
+
+    /**
+     * Main entry point for the Contact Management System application.
+     */
     public static void main(String[] args) {
+        // Set Nimbus LookAndFeel for modern appearance
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            // If Nimbus is not available, fall back to default
+        }
 
-        List<c> cs1 = CSVReader.rcsv(filePath);
-        for (c c : cs1)
-            cTree.ac(c.n, c.pn, c.e);
+        // List<c> cs1 = CSVReader.rcsv(filePath);
+        // for (c c : cs1)
+        //     cTree.ac(c.n, c.pn, c.e);
 
-        JOptionPane.showMessageDialog(null, "Welcome to contact Management System!");
+        JOptionPane.showMessageDialog(null, "Welcome to contact Management System!\nNote: Contacts are not saved automatically. Use Export/Import to save or load contacts.");
 
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("contact Management System");
+            // Set app icon if available
+            try {
+                frame.setIconImage(Toolkit.getDefaultToolkit().getImage("icon.png"));
+            } catch (Exception ex) {
+                // Ignore if icon not found
+            }
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
             frame.setLayout(new BorderLayout());
 
-            JTextArea outputArea = new JTextArea();
-            outputArea.setEditable(false);
-            outputArea.setFont(new Font("Comic Sans MS", Font.PLAIN, 22));
-            frame.add(new JScrollPane(outputArea), BorderLayout.CENTER);
+            // Use a modern, professional font throughout
+            Font uiFont = new Font("Segoe UI", Font.PLAIN, 18);
+            Font uiFontBold = new Font("Segoe UI", Font.BOLD, 20);
+            Font uiFontHeader = new Font("Segoe UI", Font.BOLD, 22);
 
-            JComboBox<String> operationsComboBox = new JComboBox<>(
-                    new String[] { "Add contact", "Update contact", "Display contacts", "Search contacts" });
-            frame.add(operationsComboBox, BorderLayout.NORTH);
-            operationsComboBox.setFont(new Font("Comic Sans MS", Font.PLAIN, 22));
+            // Add a prominent notification label at the top
+            JLabel notificationLabel = new JLabel("Note: Contacts are NOT saved automatically. Use File > Export/Import to save or load contacts.");
+            notificationLabel.setFont(uiFontHeader);
+            notificationLabel.setForeground(Color.RED);
+            notificationLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-            JButton executeButton = new JButton("Execute");
-            executeButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 22));
+            // Menu bar for import/export and dark mode
+            JMenuBar menuBar = new JMenuBar();
+            JMenu fileMenu = new JMenu("File");
+            JMenuItem importItem = new JMenuItem("Import Contacts");
+            JMenuItem exportItem = new JMenuItem("Export Contacts");
+            fileMenu.add(importItem);
+            fileMenu.add(exportItem);
+            menuBar.add(fileMenu);
+            JCheckBoxMenuItem darkModeToggle = new JCheckBoxMenuItem("Dark Mode");
+            menuBar.add(darkModeToggle);
+            // Help/About menu
+            JMenu helpMenu = new JMenu("Help");
+            JMenuItem aboutItem = new JMenuItem("About");
+            helpMenu.add(aboutItem);
+            menuBar.add(helpMenu);
+            aboutItem.addActionListener(e -> {
+                JOptionPane.showMessageDialog(frame,
+                    "Contact Management System\nVersion 2.0\n\nBuilt with Java Swing and AVL Tree\n(c) 2024 Your Name\nFor help, contact: youremail@example.com",
+                    "About",
+                    JOptionPane.INFORMATION_MESSAGE);
+            });
+            frame.setJMenuBar(menuBar);
 
-            executeButton.addActionListener(e -> {
-                String selectedOperation = (String) operationsComboBox.getSelectedItem();
-                // all our oprations
-                if ("Add contact".equals(selectedOperation)) {
-                    String n = JOptionPane.showInputDialog("Enter name:");
-                    while (validateInput(n, n_REGEX)) {
-                        n = JOptionPane.showInputDialog("Enter correct name:");
-                    }
-                    String pn = JOptionPane.showInputDialog("Enter phone number:");
-                    while (validateInput(pn, PHONE_REGEX)) {
-                        pn = JOptionPane.showInputDialog("Enter correct phone number:");
-                    }
-                    String em = JOptionPane.showInputDialog("Enter email:");
-                    while (validateInput(em, e_REGEX)) {
-                        em = JOptionPane.showInputDialog("Enter correct email:");
-                    }
+            // Control panel for operations (buttons)
+            JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+            controlPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            JButton addButton = new JButton("Add");
+            JButton updateButton = new JButton("Update");
+            JButton deleteButton = new JButton("Delete");
+            JButton clearSearchButton = new JButton("Clear Search");
+            JButton batchDeleteButton = new JButton("Batch Delete");
+            addButton.setFont(uiFontBold);
+            updateButton.setFont(uiFontBold);
+            deleteButton.setFont(uiFontBold);
+            clearSearchButton.setFont(uiFontBold);
+            batchDeleteButton.setFont(uiFontBold);
+            controlPanel.add(addButton);
+            controlPanel.add(updateButton);
+            controlPanel.add(deleteButton);
+            controlPanel.add(clearSearchButton);
+            controlPanel.add(batchDeleteButton);
 
-                    boolean x = cTree.ac(n, pn, em);
-                    if (x)
-                        outputArea.setText("contact added successfully.");
-                    else
-                        outputArea.setText("contact founded same so no contact added.");
-                } else if ("Update contact".equals(selectedOperation)) {
-                    String n = JOptionPane.showInputDialog("Enter name to search for update:");
+            // Remove the Search button from the control panel
+            // (Do not add searchButton to controlPanel)
 
-                    while (validateInput(n, n_REGEX)) {
-                        n = JOptionPane.showInputDialog("Enter correct name to search for update:");
-                    }
-                    String p = JOptionPane.showInputDialog("Enter phone number to search for update:");
-                    while (validateInput(p, PHONE_REGEX)) {
-                        p = JOptionPane.showInputDialog("Enter correct phone number to search for update:");
-                    }
-                    String em = JOptionPane.showInputDialog("Enter email to search for update:");
-                    while (validateInput(em, e_REGEX)) {
-                        em = JOptionPane.showInputDialog("Enter correct email to search for update:");
-                    }
+            // Update filterPanel to only include the search label and field
+            JLabel searchLabel = new JLabel("Search:");
+            JTextField liveSearchField = new JTextField(20);
+            liveSearchField.setFont(uiFont);
+            JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+            filterPanel.add(searchLabel);
+            filterPanel.add(liveSearchField);
 
-                    String nn = JOptionPane.showInputDialog("Enter new name:");
-                    while (validateInput(nn, n_REGEX)) {
-                        nn = JOptionPane.showInputDialog("Enter correct new name:");
+            // Update topPanel to only include notification, controlPanel, and filterPanel
+            JPanel topPanel = new JPanel(new BorderLayout());
+            topPanel.add(notificationLabel, BorderLayout.PAGE_START);
+            topPanel.add(controlPanel, BorderLayout.CENTER);
+            topPanel.add(filterPanel, BorderLayout.SOUTH);
+            frame.add(topPanel, BorderLayout.NORTH);
+
+            // Center panel for contact display (now JTable)
+            String[] columnNames = {"No.", "★", "Name", "Phone Number", "Email"};
+            javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(columnNames, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    // Only the star column is editable for toggling favorite
+                    return column == 1;
+                }
+            };
+            JTable contactTable = new JTable(tableModel) {
+                @Override
+                public Class<?> getColumnClass(int column) {
+                    if (column == 1) return Boolean.class;
+                    return super.getColumnClass(column);
+                }
+            };
+            JScrollPane tableScrollPane = new JScrollPane(contactTable);
+            tableScrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            JPanel centerPanel = new JPanel(new BorderLayout());
+            centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            centerPanel.add(tableScrollPane, BorderLayout.CENTER);
+            frame.add(centerPanel, BorderLayout.CENTER);
+
+            // Helper to refresh table from AVLTree and auto-resize columns
+            Runnable refreshTable = () -> {
+                tableModel.setRowCount(0);
+                int rowNum = 1;
+                String searchText = liveSearchField.getText().trim().toLowerCase();
+                for (Contact contact : cTree.getContactList()) {
+                    if (!searchText.isEmpty()) {
+                        boolean matches = contact.name.toLowerCase().contains(searchText)
+                            || contact.phoneNumber.toLowerCase().contains(searchText)
+                            || contact.email.toLowerCase().contains(searchText);
+                        if (!matches) continue;
                     }
-                    String np = JOptionPane.showInputDialog("Enter new phone number:");
-                    while (validateInput(np, PHONE_REGEX)) {
-                        np = JOptionPane.showInputDialog("Enter correct new phone number:");
+                    tableModel.addRow(new Object[]{rowNum++, contact.favorite, contact.name, contact.phoneNumber, contact.email});
+                }
+                // Auto-resize columns to fit content
+                for (int col = 0; col < contactTable.getColumnCount(); col++) {
+                    int maxWidth = 100;
+                    for (int row = 0; row < contactTable.getRowCount(); row++) {
+                        TableCellRenderer renderer = contactTable.getCellRenderer(row, col);
+                        Component comp = contactTable.prepareRenderer(renderer, row, col);
+                        maxWidth = Math.max(comp.getPreferredSize().width + 20, maxWidth);
                     }
-                    String ne = JOptionPane.showInputDialog("Enter new email:");
-                    while (validateInput(ne, e_REGEX)) {
-                        ne = JOptionPane.showInputDialog("Enter correct new email:");
-                    }
-                    boolean cUpdated = cTree.uc(n, p, em, nn,
-                            np, ne);
-                    if (cUpdated) {
-                        outputArea.setText("contact updated successfully.");
-                    } else {
-                        outputArea.setText("contact not found. No updates were made.");
-                    }
-                } else if ("Display contacts".equals(selectedOperation)) {
-                    String cs = cTree.gc();
-                    outputArea.setText(cs);
-                } else if ("Search contacts".equals(selectedOperation)) {
-                    String searchOption = JOptionPane
-                            .showInputDialog("Enter search option (1 for name / 2 for Number):");
-                    String searchTerm = JOptionPane.showInputDialog("Enter search term:");
-                    StringBuilder sr = new StringBuilder();
-                    if ("1".equalsIgnoreCase(searchOption)) {
-                        String result = cTree.sctsbn(searchTerm);
-                        if (result.isEmpty()) {
-                            sr.append("No contacts found with the given n.");
-                        } else {
-                            sr.append(result);
+                    contactTable.getColumnModel().getColumn(col).setPreferredWidth(maxWidth);
+                }
+            };
+            refreshTable.run();
+
+            // Add key listener to liveSearchField to filter on Enter
+            liveSearchField.addActionListener(e -> refreshTable.run());
+
+            // Live search/filter logic (optional: keep for instant feedback)
+            // liveSearchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            //     public void insertUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
+            //     public void removeUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
+            //     public void changedUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
+            // });
+
+            // Enable multi-row selection for batch delete
+            // contactTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION); // This line was moved
+
+            // Add batch delete button
+            // batchDeleteButton.addActionListener(e -> { // This line was moved
+            //     int[] selectedRows = contactTable.getSelectedRows(); // This line was moved
+            //     if (selectedRows.length == 0) { // This line was moved
+            //         setStatus(statusBar, new Timer[]{null}, "No contacts selected for batch delete.", Color.YELLOW); // This line was moved
+            //         return; // This line was moved
+            //     } // This line was moved
+            //     int confirm = JOptionPane.showConfirmDialog(frame, "Delete all selected contacts?", "Confirm Batch Delete", JOptionPane.YES_NO_OPTION); // This line was moved
+            //     if (confirm == JOptionPane.YES_OPTION) { // This line was moved
+            //         java.util.List<Contact> toDelete = new java.util.ArrayList<>(); // This line was moved
+            //         for (int row : selectedRows) { // This line was moved
+            //             String name = (String) tableModel.getValueAt(row, 2); // This line was moved
+            //             String phone = (String) tableModel.getValueAt(row, 3); // This line was moved
+            //             String email = (String) tableModel.getValueAt(row, 4); // This line was moved
+            //             for (Contact contact : cTree.getContactList()) { // This line was moved
+            //                 if (contact.name.equals(name) && contact.phoneNumber.equals(phone) && contact.email.equals(email)) { // This line was moved
+            //                     toDelete.add(contact); // This line was moved
+            //                     break; // This line was moved
+            //                 } // This line was moved
+            //             } // This line was moved
+            //         } // This line was moved
+            //         for (Contact contact : toDelete) { // This line was moved
+            //             cTree.root = cTree.delete(cTree.root, contact.name, contact.phoneNumber, contact.email); // This line was moved
+            //         } // This line was moved
+            //         refreshTable.run(); // This line was moved
+            //         setStatus(statusBar, new Timer[]{null}, "Batch delete completed.", Color.RED); // This line was moved
+            //     } // This line was moved
+            // }); // This line was moved
+
+            // Status bar at the bottom
+            JLabel statusBar = new JLabel("Ready");
+            statusBar.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            statusBar.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+            frame.add(statusBar, BorderLayout.SOUTH);
+
+            // Dark mode logic (moved here after all components are declared)
+            Color darkBg = new Color(40, 40, 40);
+            Color darkFg = new Color(220, 220, 220);
+            Color darkPanel = new Color(30, 30, 30);
+            Color darkTableHeader = new Color(60, 60, 60);
+            Runnable applyDarkMode = () -> {
+                boolean dark = darkModeToggle.isSelected();
+                Color bg = dark ? darkBg : Color.WHITE;
+                Color fg = dark ? darkFg : Color.BLACK;
+                Color panelBg = dark ? darkPanel : frame.getBackground();
+                Color headerBg = dark ? darkTableHeader : contactTable.getTableHeader().getBackground();
+                // Frame and panels
+                frame.getContentPane().setBackground(panelBg);
+                topPanel.setBackground(panelBg);
+                controlPanel.setBackground(panelBg);
+                centerPanel.setBackground(panelBg);
+                tableScrollPane.getViewport().setBackground(bg);
+                // Table
+                contactTable.setBackground(bg);
+                contactTable.setForeground(fg);
+                contactTable.setSelectionBackground(dark ? new Color(70, 130, 180) : new Color(184, 207, 229));
+                contactTable.setSelectionForeground(dark ? Color.WHITE : Color.BLACK);
+                contactTable.getTableHeader().setBackground(headerBg);
+                contactTable.getTableHeader().setForeground(fg);
+                // Status bar
+                statusBar.setBackground(panelBg);
+                statusBar.setForeground(fg);
+                // Buttons
+                addButton.setBackground(panelBg);
+                addButton.setForeground(fg);
+                updateButton.setBackground(panelBg);
+                updateButton.setForeground(fg);
+                deleteButton.setBackground(panelBg);
+                deleteButton.setForeground(fg);
+                clearSearchButton.setBackground(panelBg);
+                clearSearchButton.setForeground(fg);
+                // Notification label
+                notificationLabel.setBackground(panelBg);
+                notificationLabel.setForeground(dark ? new Color(255, 100, 100) : Color.RED);
+            };
+            darkModeToggle.addActionListener(e -> applyDarkMode.run());
+
+            // Toggle favorite (star) in table
+            contactTable.getModel().addTableModelListener(e -> {
+                if (e.getColumn() == 1 && e.getFirstRow() >= 0) {
+                    int row = e.getFirstRow();
+                    String name = (String) tableModel.getValueAt(row, 2);
+                    String phone = (String) tableModel.getValueAt(row, 3);
+                    String email = (String) tableModel.getValueAt(row, 4);
+                    for (Contact contact : cTree.getContactList()) {
+                        if (contact.name.equals(name) && contact.phoneNumber.equals(phone) && contact.email.equals(email)) {
+                            contact.favorite = (Boolean) tableModel.getValueAt(row, 1);
+                            break;
                         }
-                    } else if ("2".equalsIgnoreCase(searchOption)) {
-                        String result = cTree.sctsbpn(searchTerm);
-                        if (result.isEmpty()) {
-                            sr.append("No contacts found with the given phone number.");
-                        } else {
-                            sr.append(result);
-                        }
-                    } else {
-                        sr.append("Invalid search option.");
                     }
-                    outputArea.setText(sr.toString());
                 }
             });
+
+            // Group filter action
+            // groupFilterCombo.addActionListener(e -> refreshTable.run()); // This line was moved
+
+            // Add live search field
+            // liveSearchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() { // This line was moved
+            //     public void insertUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
+            //     public void removeUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
+            //     public void changedUpdate(javax.swing.event.DocumentEvent e) { refreshTable.run(); }
+            // }); // This line was moved
+
+            // Import contacts action
+            importItem.addActionListener(e -> {
+                JFileChooser fileChooser = new JFileChooser();
+                int result = fileChooser.showOpenDialog(frame);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    java.util.List<Contact> imported = CSVReader.readCSV(file.getAbsolutePath());
+                    int count = 0;
+                    for (Contact contact : imported) {
+                        if (cTree.addContact(contact.name, contact.phoneNumber, contact.email)) count++;
+                    }
+                    refreshTable.run();
+                    setStatus(statusBar, new Timer[]{null}, "Imported " + count + " contacts from " + file.getName(), new Color(0, 128, 0)); // green
+                }
+            });
+            // Export contacts action
+            exportItem.addActionListener(e -> {
+                JFileChooser fileChooser = new JFileChooser();
+                int result = fileChooser.showSaveDialog(frame);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    AVLTree.saveContacts(cTree.getContactList(), file.getAbsolutePath());
+                    setStatus(statusBar, new Timer[]{null}, "Exported contacts to " + file.getName(), new Color(255, 140, 0)); // orange
+                }
+            });
+
+            // Add Contact Dialog
+            addButton.addActionListener(e -> {
+                JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+                JTextField nameField = new JTextField();
+                JTextField phoneField = new JTextField();
+                JTextField emailField = new JTextField();
+                panel.add(new JLabel("Name:")); panel.add(nameField);
+                panel.add(new JLabel("Phone Number:")); panel.add(phoneField);
+                panel.add(new JLabel("Email:")); panel.add(emailField);
+                // Focus first field and allow Enter to submit
+                Runnable resetBorders = () -> {
+                    nameField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
+                    phoneField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
+                    emailField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
+                };
+                nameField.requestFocusInWindow();
+                JDialog dialog = new JDialog(frame, "Add Contact", true);
+                dialog.setResizable(true);
+                dialog.setContentPane(panel);
+                dialog.pack();
+                dialog.setLocationRelativeTo(frame);
+                dialog.getRootPane().setDefaultButton(new JButton()); // dummy to allow Enter
+                panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "submit");
+                panel.getActionMap().put("submit", new AbstractAction() {
+                    public void actionPerformed(ActionEvent e) {
+                        resetBorders.run();
+                        String n = nameField.getText().trim();
+                        String pn = phoneField.getText().trim();
+                        String em = emailField.getText().trim();
+                        boolean valid = true;
+                        if (validateInput(n, n_REGEX)) {
+                            nameField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                            setStatus(statusBar, new Timer[]{null}, "Invalid name. Only letters allowed.", Color.RED);
+                            valid = false;
+                        }
+                        if (validateInput(pn, PHONE_REGEX)) {
+                            phoneField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                            setStatus(statusBar, new Timer[]{null}, "Invalid phone number. Must be 10 digits.", Color.RED);
+                            valid = false;
+                        }
+                        if (validateInput(em, e_REGEX)) {
+                            emailField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                            setStatus(statusBar, new Timer[]{null}, "Invalid email format.", Color.RED);
+                            valid = false;
+                        }
+                        if (!valid) return;
+                        boolean x = cTree.addContact(n, pn, em);
+                        refreshTable.run();
+                        if (x) setStatus(statusBar, new Timer[]{null}, "Contact added successfully.", new Color(0, 128, 0)); // green
+                        else setStatus(statusBar, new Timer[]{null}, "Contact already exists, not added.", Color.RED);
+                        dialog.dispose();
+                    }
+                });
+                dialog.getRootPane().setDefaultButton(new JButton() {{
+                    addActionListener(panel.getActionMap().get("submit"));
+                }});
+                dialog.setVisible(true);
+            });
+
+            // Update Contact Dialog
+            updateButton.addActionListener(e -> {
+                int selectedRow = contactTable.getSelectedRow();
+                if (selectedRow == -1) {
+                    setStatus(statusBar, new Timer[]{null}, "Select a contact to update.", Color.YELLOW);
+                    return;
+                }
+                String oldName = (String) tableModel.getValueAt(selectedRow, 2); // Corrected column index
+                String oldPhone = (String) tableModel.getValueAt(selectedRow, 3); // Corrected column index
+                String oldEmail = (String) tableModel.getValueAt(selectedRow, 4); // Corrected column index
+                JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+                JTextField nameField = new JTextField(oldName);
+                JTextField phoneField = new JTextField(oldPhone);
+                JTextField emailField = new JTextField(oldEmail);
+                panel.add(new JLabel("New Name:")); panel.add(nameField);
+                panel.add(new JLabel("New Phone Number:")); panel.add(phoneField);
+                panel.add(new JLabel("New Email:")); panel.add(emailField);
+                Runnable resetBorders = () -> {
+                    nameField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
+                    phoneField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
+                    emailField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
+                };
+                nameField.requestFocusInWindow();
+                JDialog dialog = new JDialog(frame, "Update Contact", true);
+                dialog.setResizable(true);
+                dialog.setContentPane(panel);
+                dialog.pack();
+                dialog.setLocationRelativeTo(frame);
+                dialog.getRootPane().setDefaultButton(new JButton());
+                panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "submit");
+                panel.getActionMap().put("submit", new AbstractAction() {
+                    public void actionPerformed(ActionEvent e) {
+                        resetBorders.run();
+                        String nn = nameField.getText().trim();
+                        String np = phoneField.getText().trim();
+                        String ne = emailField.getText().trim();
+                        boolean valid = true;
+                        if (validateInput(nn, n_REGEX)) {
+                            nameField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                            setStatus(statusBar, new Timer[]{null}, "Invalid name. Only letters allowed.", Color.RED);
+                            valid = false;
+                        }
+                        if (validateInput(np, PHONE_REGEX)) {
+                            phoneField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                            setStatus(statusBar, new Timer[]{null}, "Invalid phone number. Must be 10 digits.", Color.RED);
+                            valid = false;
+                        }
+                        if (validateInput(ne, e_REGEX)) {
+                            emailField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                            setStatus(statusBar, new Timer[]{null}, "Invalid email format.", Color.RED);
+                            valid = false;
+                        }
+                        if (!valid) return;
+                        boolean cUpdated = cTree.updateContact(oldName, oldPhone, oldEmail, nn, np, ne);
+                        refreshTable.run();
+                        if (cUpdated) setStatus(statusBar, new Timer[]{null}, "Contact updated successfully.", new Color(0, 128, 0)); // green
+                        else setStatus(statusBar, new Timer[]{null}, "Contact not found. No updates were made.", Color.RED);
+                        dialog.dispose();
+                    }
+                });
+                dialog.getRootPane().setDefaultButton(new JButton() {{
+                    addActionListener(panel.getActionMap().get("submit"));
+                }});
+                dialog.setVisible(true);
+            });
+
+            // Delete Contact
+            deleteButton.addActionListener(e -> {
+                int selectedRow = contactTable.getSelectedRow();
+                if (selectedRow == -1) {
+                    setStatus(statusBar, new Timer[]{null}, "Select a contact to delete.", Color.YELLOW);
+                    return;
+                }
+                String name = (String) tableModel.getValueAt(selectedRow, 2); // Corrected column index
+                String phone = (String) tableModel.getValueAt(selectedRow, 3); // Corrected column index
+                String email = (String) tableModel.getValueAt(selectedRow, 4); // Corrected column index
+                int confirm = JOptionPane.showConfirmDialog(frame, "Delete selected contact?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    // Remove from AVL tree
+                    cTree.root = cTree.delete(cTree.root, name, phone, email);
+                    refreshTable.run();
+                    setStatus(statusBar, new Timer[]{null}, "Contact deleted.", Color.RED);
+                }
+            });
+
+            // Search Contact Dialog
+            // searchButton.addActionListener(e -> { // This line was moved
+            //     JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5)); // This line was moved
+            //     String[] options = {"Name", "Phone Number"}; // This line was moved
+            //     JComboBox<String> searchType = new JComboBox<>(options); // This line was moved
+            //     JTextField searchField = new JTextField(); // This line was moved
+            //     panel.add(new JLabel("Search by:")); panel.add(searchType); // This line was moved
+            //     panel.add(new JLabel("Search term:")); panel.add(searchField); // This line was moved
+            //     searchField.requestFocusInWindow(); // This line was moved
+            //     JDialog dialog = new JDialog(frame, "Search Contacts", true); // This line was moved
+            //     dialog.setResizable(true); // This line was moved
+            //     dialog.setContentPane(panel); // This line was moved
+            //     dialog.pack(); // This line was moved
+            //     dialog.setLocationRelativeTo(frame); // This line was moved
+            //     dialog.getRootPane().setDefaultButton(new JButton()); // This line was moved
+            //     panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "submit"); // This line was moved
+            //     panel.getActionMap().put("submit", new AbstractAction() { // This line was moved
+            //         public void actionPerformed(ActionEvent e) { // This line was moved
+            //             String term = searchField.getText().trim(); // This line was moved
+            //             tableModel.setRowCount(0); // This line was moved
+            //             if (searchType.getSelectedIndex() == 0) { // Name // This line was moved
+            //                 int rowNum = 1; // This line was moved
+            //                 for (Contact contact : cTree.getContactList()) { // This line was moved
+            //                     if (contact.name.toLowerCase().contains(term.toLowerCase())) { // This line was moved
+            //                         tableModel.addRow(new Object[]{rowNum++, contact.name, contact.phoneNumber, contact.email}); // This line was moved
+            //                     } // This line was moved
+            //                 } // This line was moved
+            //                 setStatus(statusBar, new Timer[]{null}, "Search by name complete.", new Color(255, 140, 0)); // orange // This line was moved
+            //             } else { // Phone Number // This line was moved
+            //                 int rowNum = 1; // This line was moved
+            //                 for (Contact contact : cTree.getContactList()) { // This line was moved
+            //                     if (contact.phoneNumber.contains(term)) { // This line was moved
+            //                         tableModel.addRow(new Object[]{rowNum++, contact.name, contact.phoneNumber, contact.email}); // This line was moved
+            //                     } // This line was moved
+            //                 } // This line was moved
+            //                 setStatus(statusBar, new Timer[]{null}, "Search by phone number complete.", new Color(255, 140, 0)); // orange // This line was moved
+            //             } // This line was moved
+            //             dialog.dispose(); // This line was moved
+            //         } // This line was moved
+            //     }); // This line was moved
+            //     dialog.getRootPane().setDefaultButton(new JButton() {{ // This line was moved
+            //         addActionListener(panel.getActionMap().get("submit")); // This line was moved
+            //     }}); // This line was moved
+            //     dialog.setVisible(true); // This line was moved
+            // }); // This line was moved
+
+            // Clear Search Button
+            clearSearchButton.addActionListener(e -> refreshTable.run());
+
+            // Batch delete logic
+            batchDeleteButton.addActionListener(e -> {
+                int[] selectedRows = contactTable.getSelectedRows();
+                if (selectedRows.length == 0) {
+                    setStatus(statusBar, new Timer[]{null}, "No contacts selected for batch delete.", Color.YELLOW);
+                    return;
+                }
+                int confirm = JOptionPane.showConfirmDialog(frame, "Delete all selected contacts?", "Confirm Batch Delete", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    java.util.List<Contact> toDelete = new java.util.ArrayList<>();
+                    for (int row : selectedRows) {
+                        String name = (String) tableModel.getValueAt(row, 2);
+                        String phone = (String) tableModel.getValueAt(row, 3);
+                        String email = (String) tableModel.getValueAt(row, 4);
+                        for (Contact contact : cTree.getContactList()) {
+                            if (contact.name.equals(name) && contact.phoneNumber.equals(phone) && contact.email.equals(email)) {
+                                toDelete.add(contact);
+                                break;
+                            }
+                        }
+                    }
+                    for (Contact contact : toDelete) {
+                        cTree.root = cTree.delete(cTree.root, contact.name, contact.phoneNumber, contact.email);
+                    }
+                    refreshTable.run();
+                    setStatus(statusBar, new Timer[]{null}, "Batch delete completed.", Color.RED);
+                }
+            });
+
             frame.addWindowListener(new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {
                     int choice = JOptionPane.showConfirmDialog(frame,
@@ -487,8 +555,7 @@ public class Main {
                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                     if (choice == JOptionPane.YES_OPTION) {
-                        // saves new contact back to csv file
-                        AVLTree.sc(cTree.gcList(), filePath);
+                        // No auto-save to CSV
                         JOptionPane.showMessageDialog(frame, "Thank you for using the system!");
                         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                     } else {
@@ -496,8 +563,42 @@ public class Main {
                     }
                 }
             });
-            frame.add(executeButton, BorderLayout.SOUTH);
             frame.setVisible(true);
+
+            // Keyboard shortcuts
+            frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK), "addContact");
+            frame.getRootPane().getActionMap().put("addContact", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) { addButton.doClick(); }
+            });
+            // Remove all references to searchButton
+            // (Do not declare, add, or use searchButton anywhere)
+            frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteContact");
+            frame.getRootPane().getActionMap().put("deleteContact", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) { deleteButton.doClick(); }
+            });
+
+            // Support keyboard navigation for table rows
+            contactTable.setRowSelectionAllowed(true);
+            contactTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            contactTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "selectPreviousRow");
+            contactTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "selectNextRow");
+            contactTable.getActionMap().put("selectPreviousRow", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    int row = contactTable.getSelectedRow();
+                    if (row > 0) contactTable.setRowSelectionInterval(row - 1, row - 1);
+                }
+            });
+            contactTable.getActionMap().put("selectNextRow", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    int row = contactTable.getSelectedRow();
+                    if (row < contactTable.getRowCount() - 1) contactTable.setRowSelectionInterval(row + 1, row + 1);
+                }
+            });
+
+            // At the end of SwingUtilities.invokeLater, apply the current mode
+            applyDarkMode.run();
         });
     }
 }
