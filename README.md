@@ -59,6 +59,8 @@ A modern Java Swing-based contact manager using an AVL tree for fast operations.
 
 ## How to Run
 
+### Quick Start (Development)
+
 1. **Compile:**
 
    ```sh
@@ -70,6 +72,40 @@ A modern Java Swing-based contact manager using an AVL tree for fast operations.
    ```sh
    java Main
    ```
+
+### Distributable Packages
+
+Ready-to-use packages are available in the `distributable/` folder:
+
+#### 📦 **Available Packages**
+
+- **🍎 macOS**: `Telephone Book-1.0.0.dmg` - Double-click to install
+- **📦 Portable**: `TelephoneBook.jar` - Run with `java -jar TelephoneBook.jar`
+
+#### 🚀 **Creating Packages for Other Platforms**
+
+**For Windows packages (EXE, MSI):**
+
+```cmd
+# On Windows with JDK 14+
+cd distributable
+build-windows.bat
+```
+
+**For Linux packages (DEB, RPM):**
+
+```bash
+# On Linux with JDK 14+
+cd distributable
+./build-linux.sh
+```
+
+#### 📋 **Package Features**
+
+- ✅ **No Java Required**: All packages include bundled Java runtime
+- ✅ **Native Installers**: Platform-specific installation experience
+- ✅ **System Integration**: Appears in system menus and creates shortcuts
+- ✅ **Uninstall Support**: Proper removal through system tools
 
 ## Features in Detail
 
@@ -121,14 +157,21 @@ A modern Java Swing-based contact manager using an AVL tree for fast operations.
 
 ```sh
 telephone_book/
-├── Main.java          # Main application and GUI
-├── Contact.java       # Contact data model
-├── AVLNode.java       # AVL tree node
-├── AVLTree.java       # AVL tree implementation
-├── CSVReader.java     # CSV file operations
-├── README.md          # This file
-├── LICENSE            # MIT License
-└── screenshots/       # Application screenshots
+├── Main.java                              # Main application and GUI
+├── Contact.java                           # Contact data model
+├── AVLNode.java                           # AVL tree node
+├── AVLTree.java                           # AVL tree implementation
+├── CSVReader.java                         # CSV file operations
+├── README.md                              # This file
+├── LICENSE                                # MIT License
+├── .gitignore                             # Git ignore rules
+├── screenshots/                           # Application screenshots
+├── distributable/                         # Ready-to-use packages
+│   ├── Telephone Book-1.0.0.dmg          # macOS installer
+│   ├── TelephoneBook.jar                  # Portable JAR
+│   ├── build-windows.bat                  # Windows build script
+│   ├── build-linux.sh                     # Linux build script
+│   └── README.txt                         # Package instructions
 ```
 
 ## Technical Details
@@ -200,29 +243,90 @@ This application is designed to work seamlessly across all major operating syste
   - `F1` - Help/About
 - **File operations**: Native Linux file dialogs
 
-### **Installation by Platform**
+### Installation by Platform
 
-#### Windows
+#### 🍎 macOS (Recommended)
 
-1. Download and install Java from [Oracle](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://adoptium.net/)
-2. Add Java to your system PATH
-3. Run the application
+Option 1: Native Installer (No Java Required)
 
-#### macOS
+1. Download `Telephone Book-1.0.0.dmg` from `distributable/` folder
+2. Double-click the DMG file
+3. Drag the app to Applications folder
+4. Launch from Applications or Spotlight
+
+Option 2: Development Setup
 
 1. Install Java via Homebrew: `brew install openjdk@11`
 2. Or download from [Oracle](https://www.oracle.com/java/technologies/downloads/)
-3. Run the application
+3. Run: `javac *.java && java Main`
 
-#### Linux (Ubuntu/Debian)
+Option 3: Create Custom Packages
 
-1. Install Java: `sudo apt install openjdk-11-jdk`
-2. Or for other distributions, use your package manager
-3. Run the application
+1. Navigate to `distributable/` folder
+2. Run the appropriate build script for your platform
 
-### **Universal Commands**
+#### 🪟 Windows
 
-All platforms use the same commands:
+Option 1: Native Installer (No Java Required)
+
+1. Download `Telephone Book-1.0.0.exe` from `distributable/` folder
+2. Double-click the EXE file
+3. Follow the installation wizard
+4. Launch from Start Menu or Desktop shortcut
+
+Option 2: Development Setup
+
+1. Download and install Java from [Oracle](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://adoptium.net/)
+2. Add Java to your system PATH
+3. Run: `javac *.java && java Main`
+
+Option 3: Create Custom Packages
+
+1. Navigate to `distributable/` folder
+2. Run: `build-windows.bat`
+
+#### 🐧 Linux
+
+Option 1: Package Manager (No Java Required)
+
+**Ubuntu/Debian:**
+
+```bash
+sudo dpkg -i telephone-book_1.0.0-1_amd64.deb
+sudo apt-get install -f  # Fix any dependency issues
+```
+
+**Fedora/CentOS/RHEL:**
+
+```bash
+sudo rpm -i telephone-book-1.0.0-1.x86_64.rpm
+```
+
+Option 2: Development Setup
+
+```bash
+sudo apt install openjdk-11-jdk  # Ubuntu/Debian
+# or
+sudo dnf install java-11-openjdk-devel  # Fedora
+javac *.java && java Main
+```
+
+Option 3: Create Custom Packages
+
+1. Navigate to `distributable/` folder
+2. Run: `./build-linux.sh`
+
+#### 📦 Portable (Any Platform)
+
+If you have Java installed:
+
+```bash
+java -jar TelephoneBook.jar
+```
+
+### Universal Commands
+
+All platforms use the same commands for development:
 
 ```bash
 # Compile
@@ -230,6 +334,12 @@ javac *.java
 
 # Run
 java Main
+
+# Create JAR
+jar cfe TelephoneBook.jar Main *.class
+
+# Run JAR
+java -jar TelephoneBook.jar
 ```
 
 ## Troubleshooting
@@ -269,7 +379,16 @@ The application includes several performance optimizations:
 
 ## Recent Updates
 
-### Version 2.1 (Latest)
+### Version 2.2 (Latest)
+
+- **Added**: Native distributable packages for macOS
+- **Added**: Build scripts moved to `distributable/` folder for better organization
+- **Added**: DMG installer for macOS (no Java required)
+- **Added**: Portable JAR file for any platform
+- **Added**: Comprehensive installation documentation
+- **Added**: `.gitignore` file for clean repository management
+
+### Version 2.1
 
 - **Fixed**: ClassCastException in table rendering for favorite column
 - **Optimized**: Regex validation with caching for better performance
