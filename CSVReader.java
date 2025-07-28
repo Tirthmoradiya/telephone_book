@@ -1,8 +1,5 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
 /**
  * Utility class to read contacts from a CSV file.
@@ -17,6 +14,7 @@ public class CSVReader {
         List<Contact> contacts = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            // Handle BOM (Byte Order Mark) for UTF-8 files
             br.mark(1);
             if (br.read() != 0xFEFF) {
                 br.reset();
@@ -24,21 +22,23 @@ public class CSVReader {
 
             String line;
             while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue; // Skip empty lines
+                
                 String[] data = line.split(",");
-
                 if (data.length >= 3) {
-                    String name = data[0];
-                    String phoneNumber = data[1];
-                    String email = data[2];
-
-                    Contact contact = new Contact(name, phoneNumber, email);
-                    contacts.add(contact);
-                } else {
-                    System.out.println("Invalid CSV format: " + line);
+                    String name = data[0].trim();
+                    String phoneNumber = data[1].trim();
+                    String email = data[2].trim();
+                    
+                    // Only add valid contacts
+                    if (Contact.isValidName(name) && Contact.isValidPhone(phoneNumber) && Contact.isValidEmail(email)) {
+                        Contact contact = new Contact(name, phoneNumber, email);
+                        contacts.add(contact);
+                    }
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error reading CSV file: " + e.getMessage());
         }
 
         return contacts;

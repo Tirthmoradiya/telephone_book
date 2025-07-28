@@ -1,4 +1,4 @@
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * AVLNode represents a node in the AVL tree, holding a Contact.

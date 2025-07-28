@@ -1,9 +1,5 @@
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
 /**
  * AVLTree is a self-balancing binary search tree for managing Contact objects.
@@ -54,32 +50,32 @@ public class AVLTree implements Serializable {
         return getHeight(node.left) - getHeight(node.right);
     }
 
+    // Compare two contacts for ordering
+    private int compareContacts(Contact c1, Contact c2) {
+        int nameCompare = c1.name.compareTo(c2.name);
+        if (nameCompare != 0) return nameCompare;
+        
+        int phoneCompare = c1.phoneNumber.compareTo(c2.phoneNumber);
+        if (phoneCompare != 0) return phoneCompare;
+        
+        return c1.email.compareTo(c2.email);
+    }
+
     // insert operation
     private AVLNode insert(AVLNode node, Contact contact) {
         if (node == null) {
             return new AVLNode(contact);
         }
 
-        int nc = contact.name.compareTo(node.contact.name);
-        int pc = contact.phoneNumber.compareTo(node.contact.phoneNumber);
-        int ec = contact.email.compareTo(node.contact.email);
-
-        if (nc < 0) {
+        int comparison = compareContacts(contact, node.contact);
+        
+        if (comparison < 0) {
             node.left = insert(node.left, contact);
-        } else if (nc > 0) {
+        } else if (comparison > 0) {
             node.right = insert(node.right, contact);
         } else {
-            if (pc < 0) {
-                node.left = insert(node.left, contact);
-            } else if (pc > 0) {
-                node.right = insert(node.right, contact);
-            } else {
-                if (ec < 0) {
-                    node.left = insert(node.left, contact);
-                } else {
-                    node.right = insert(node.right, contact);
-                }
-            }
+            // Duplicate contact - don't insert
+            return node;
         }
 
         node.height = 1 + Math.max(getHeight(node.left), getHeight(node.right));
@@ -87,13 +83,13 @@ public class AVLTree implements Serializable {
         int balance = getBalance(node);
 
         if (balance > 1) {
-            if (nc > 0) {
+            if (compareContacts(contact, node.left.contact) > 0) {
                 node.left = leftRotate(node.left);
             }
             return rightRotate(node);
         }
         if (balance < -1) {
-            if (nc < 0) {
+            if (compareContacts(contact, node.right.contact) < 0) {
                 node.right = rightRotate(node.right);
             }
             return leftRotate(node);
@@ -281,5 +277,155 @@ public class AVLTree implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Finds duplicate contacts in the tree.
+     * @return List of duplicate contact groups
+     */
+    public List<List<Contact>> findDuplicates() {
+        List<List<Contact>> duplicateGroups = new ArrayList<>();
+        List<Contact> allContacts = getContactList();
+        
+        // Use a map to group contacts by their normalized data
+        Map<String, List<Contact>> phoneGroups = new HashMap<>();
+        Map<String, List<Contact>> emailGroups = new HashMap<>();
+        Map<String, List<Contact>> nameGroups = new HashMap<>();
+        
+        for (Contact contact : allContacts) {
+            // Group by normalized phone
+            String normPhone = Contact.normalizePhone(contact.phoneNumber);
+            if (!normPhone.isEmpty()) {
+                phoneGroups.computeIfAbsent(normPhone, k -> new ArrayList<>()).add(contact);
+            }
+            
+            // Group by normalized email
+            String normEmail = Contact.normalizeEmail(contact.email);
+            if (!normEmail.isEmpty()) {
+                emailGroups.computeIfAbsent(normEmail, k -> new ArrayList<>()).add(contact);
+            }
+            
+            // Group by normalized name
+            String normName = Contact.normalizeName(contact.name);
+            if (!normName.isEmpty()) {
+                nameGroups.computeIfAbsent(normName, k -> new ArrayList<>()).add(contact);
+            }
+        }
+        
+        // Find groups with more than one contact
+        for (List<Contact> group : phoneGroups.values()) {
+            if (group.size() > 1) {
+                duplicateGroups.add(new ArrayList<>(group));
+            }
+        }
+        
+        for (List<Contact> group : emailGroups.values()) {
+            if (group.size() > 1) {
+                duplicateGroups.add(new ArrayList<>(group));
+            }
+        }
+        
+        for (List<Contact> group : nameGroups.values()) {
+            if (group.size() > 1) {
+                duplicateGroups.add(new ArrayList<>(group));
+            }
+        }
+        
+        // Remove duplicate groups (same contacts in different groups)
+        return removeDuplicateGroups(duplicateGroups);
+    }
+
+    /**
+     * Removes duplicate groups that contain the same contacts.
+     * @param groups List of duplicate groups
+     * @return List with duplicate groups removed
+     */
+    private List<List<Contact>> removeDuplicateGroups(List<List<Contact>> groups) {
+        List<List<Contact>> uniqueGroups = new ArrayList<>();
+        
+        for (List<Contact> group : groups) {
+            boolean isDuplicate = false;
+            for (List<Contact> existingGroup : uniqueGroups) {
+                if (areGroupsEqual(group, existingGroup)) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            if (!isDuplicate) {
+                uniqueGroups.add(group);
+            }
+        }
+        
+        return uniqueGroups;
+    }
+
+    /**
+     * Checks if two groups contain the same contacts.
+     * @param group1 First group
+     * @param group2 Second group
+     * @return true if groups are equal
+     */
+    private boolean areGroupsEqual(List<Contact> group1, List<Contact> group2) {
+        if (group1.size() != group2.size()) return false;
+        
+        for (Contact contact : group1) {
+            boolean found = false;
+            for (Contact other : group2) {
+                if (contact.equals(other)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Merges duplicate contacts and removes the originals.
+     * @param duplicateGroups List of duplicate groups to merge
+     * @return Number of contacts merged
+     */
+    public int mergeDuplicates(List<List<Contact>> duplicateGroups) {
+        int mergedCount = 0;
+        
+        for (List<Contact> group : duplicateGroups) {
+            if (group.size() < 2) continue;
+            
+            // Merge all contacts in the group
+            Contact merged = group.get(0);
+            for (int i = 1; i < group.size(); i++) {
+                merged = merged.mergeWith(group.get(i));
+            }
+            
+            // Remove all original contacts
+            for (Contact contact : group) {
+                root = delete(root, contact.name, contact.phoneNumber, contact.email);
+            }
+            
+            // Add the merged contact
+            addContact(merged.name, merged.phoneNumber, merged.email);
+            mergedCount += group.size() - 1; // Number of contacts merged
+        }
+        
+        return mergedCount;
+    }
+
+    /**
+     * Validates all contacts in the tree.
+     * @return List of invalid contacts
+     */
+    public List<Contact> findInvalidContacts() {
+        List<Contact> invalidContacts = new ArrayList<>();
+        List<Contact> allContacts = getContactList();
+        
+        for (Contact contact : allContacts) {
+            if (!contact.isValid()) {
+                invalidContacts.add(contact);
+            }
+        }
+        
+        return invalidContacts;
     }
 } 
